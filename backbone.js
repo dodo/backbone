@@ -622,8 +622,7 @@
           // Insert models into the collection at the exact position and triggering
           // `add` events unless silenced.
           index = options.at != null ? options.at : this.comparator ?
-                  this.sortedIndex(model,_.bind(this.comparator,this,model))-1 :
-                  this.length;
+                  this.sortedIndex(model) : this.length;
           options.index = index;
           this.models.splice(index, 0, model);
           this.length++;
@@ -881,6 +880,15 @@
         this._byId[model.id] = model;
       }
       this.trigger.apply(this, arguments);
+    },
+    sortedIndex: function(value, iterator) {
+      iterator || (iterator = this.comparator);
+      var low = 0, high = this.models.length;
+      while (low < high) {
+        var mid = (low + high) >> 1;
+        iterator(this.models[mid], value) ? low = mid + 1 : high = mid;
+      }
+      return low-1;
     }
 
   });
@@ -888,7 +896,7 @@
   // Underscore methods that we want to implement on the Collection.
   var methods = ['forEach', 'each', 'map', 'reduce', 'reduceRight', 'find',
     'detect', 'filter', 'select', 'reject', 'every', 'all', 'some', 'any',
-    'include', 'contains', 'invoke', 'max', 'min', 'sortBy', 'sortedIndex',
+    'include', 'contains', 'invoke', 'max', 'min', 'sortBy',
     'toArray', 'size', 'first', 'initial', 'rest', 'last', 'without', 'indexOf',
     'shuffle', 'lastIndexOf', 'isEmpty', 'groupBy'];
 
