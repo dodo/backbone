@@ -610,25 +610,49 @@
         dups[i] = models.splice(dups[i], 1)[0];
       }
 
-      // Listen to added models' events, and index models for lookup by
-      // `id` and by `cid`.
-      for (i = 0, length = models.length; i < length; i++) {
-        (model = models[i]).on('all', this._onModelEvent, this);
-        this._byCid[model.cid] = model;
-        if (model.id != null) this._byId[model.id] = model;
-      }
+      // Add models one by one
+      if (models.length == 1) options.single = true;
+      if (options.single) {
+        // Listen to added models' events, and index models for lookup by
+        // `id` and by `cid`.
+        for (i = 0, length = models.length; i < length; i++) {
+          (model = models[i]).on('all', this._onModelEvent, this);
+          this._byCid[model.cid] = model;
+          if (model.id != null) this._byId[model.id] = model;
+          // Insert models into the collection at the exact position and triggering
+          // `add` events unless silenced.
+          index = options.at != null ? options.at : this.comparator ?
+                  this.sortedIndex(model,_.bind(this.comparator,this,model))-1 :
+                  this.length;
+          options.index = index;
+          this.models.splice(index, 0, model);
+          this.length++;
+          if (!options.silent) model.trigger('add', model, this, options);
+        }
+      // Add all models at once
+      } else {
 
-      // Insert models into the collection, re-sorting if needed, and triggering
-      // `add` events unless silenced.
-      this.length += length;
-      index = options.at != null ? options.at : this.models.length;
-      splice.apply(this.models, [index, 0].concat(models));
-      if (this.comparator && options.at == null) this.sort({silent: true});
-      if (options.silent) return this;
-      for (i = 0, length = this.models.length; i < length; i++) {
-        if (!cids[(model = this.models[i]).cid]) continue;
-        options.index = i;
-        model.trigger('add', model, this, options);
+        // Listen to added models' events, and index models for lookup by
+        // `id` and by `cid`.
+        for (i = 0, length = models.length; i < length; i++) {
+          (model = models[i]).on('all', this._onModelEvent, this);
+          this._byCid[model.cid] = model;
+          if (model.id != null) this._byId[model.id] = model;
+        }
+
+        // Insert models into the collection, re-sorting if needed, and triggering
+        // `add` events unless silenced.
+        this.length += length;
+        index = options.at != null ? options.at : this.models.length;
+        splice.apply(this.models, [index, 0].concat(models));
+        if (this.comparator && options.at == null) this.sort({silent: true});
+        if (!options.silent) {
+          for (i = 0, length = this.models.length; i < length; i++) {
+            if (!cids[(model = this.models[i]).cid]) continue;
+            options.index = i;
+            model.trigger('add', model, this, options);
+          }
+        }
       }
 
       // Merge in duplicate models.
