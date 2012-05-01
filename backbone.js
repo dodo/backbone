@@ -610,12 +610,12 @@
         dups[i] = models.splice(dups[i], 1)[0];
       }
 
+      length = models.length;
       // Add models one by one
-      if (models.length == 1) options.single = true;
-      if (options.single) {
+      if (options.single || length == 1) {
         // Listen to added models' events, and index models for lookup by
         // `id` and by `cid`.
-        for (i = 0, length = models.length; i < length; i++) {
+        for (i = 0; i < length; i++) {
           (model = models[i]).on('all', this._onModelEvent, this);
           this._byCid[model.cid] = model;
           if (model.id != null) this._byId[model.id] = model;
@@ -634,7 +634,7 @@
 
         // Listen to added models' events, and index models for lookup by
         // `id` and by `cid`.
-        for (i = 0, length = models.length; i < length; i++) {
+        for (i = 0; i < length; i++) {
           (model = models[i]).on('all', this._onModelEvent, this);
           this._byCid[model.cid] = model;
           if (model.id != null) this._byId[model.id] = model;
